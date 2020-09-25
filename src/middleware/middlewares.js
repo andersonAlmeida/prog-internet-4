@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser')
-const jwt = require('jsonwebtoken')
-const _SECRET = process.env.JWT_SECRET
+// const jwt = require('jsonwebtoken')
+// const _SECRET = process.env.JWT_SECRET
+const usersController = require('../controllers/usersController')
 
 module.exports = (app, express) => {
   app.use(bodyParser.json())
@@ -18,50 +19,11 @@ module.exports = (app, express) => {
    * Verifica se está logado e tem a permissão necessária
    * exclui a rota de login
    */
-  app.use(/^(?!.*\/usuarios\/login).*$/, (req, res, next) => {
-    const token = req.get('Authorization')
-
-    if (!token) {
-      return res.status(401).send({ erro: 'Acesso não autorizado.' })
-    }
-
-    jwt.verify(token, _SECRET, (err, decoded) => {
-      console.log(decoded)
-      if (err) {
-        return res.status(401).send({ erro: err })
-      } else {
-        next()
-      }
-    })
-  })
+  app.use(/^(?!.*\/usuarios\/login).*$/, usersController.validateToken)
 
   /**
    * Rotas com acesso apenas para o Admin
    */
-  app.get('/usuarios', (req, res, next) => {
-    const token = req.get('Authorization')
-
-    jwt.verify(token, _SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(401).send({ erro: err })
-      } else if (decoded.role !== 'admin') {
-        return res.status(401).send({ erro: 'Acesso não autorizado' })
-      } else {
-        next()
-      }
-    })
-  })
-  app.post('/usuarios', (req, res, next) => {
-    const token = req.get('Authorization')
-
-    jwt.verify(token, _SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(401).send({ erro: err })
-      } else if (decoded.role !== 'admin') {
-        return res.status(401).send({ erro: 'Acesso não autorizado' })
-      } else {
-        next()
-      }
-    })
-  })
+  app.get('/usuarios', usersController.validateAdminToken)
+  app.post('/usuarios', usersController.validateAdminToken)
 }

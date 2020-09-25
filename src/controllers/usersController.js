@@ -129,3 +129,33 @@ exports.generateJWT = ({ _id, nome, login, role }) => {
 exports.encryptPassword = (pass) => {
   return bcrypt.hash(pass, saltRounds)
 }
+
+exports.validateToken = (req, res, next) => {
+  const token = req.get('Authorization')
+
+  if (!token) {
+    return res.status(401).send({ erro: 'Acesso não autorizado.' })
+  }
+
+  jwt.verify(token, _SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ erro: err })
+    } else {
+      next()
+    }
+  })
+}
+
+exports.validateAdminToken = (req, res, next) => {
+  const token = req.get('Authorization')
+
+  jwt.verify(token, _SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ erro: err })
+    } else if (decoded.role !== 'admin') {
+      return res.status(401).send({ erro: 'Acesso não autorizado' })
+    } else {
+      next()
+    }
+  })
+}
