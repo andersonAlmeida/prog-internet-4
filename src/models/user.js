@@ -3,14 +3,14 @@ const Schema = mongoose.Schema
 
 mongoose.Promise = global.Promise
 
-const UsuarioSchema = new Schema(
+const UserSchema = new Schema(
   {
-    nome: String,
-    login: String,
-    senha: String,
+    name: String,
+    email: String,
+    password: String,
     role: String,
   },
   { versionKey: false }
 )
 
-module.exports = mongoose.model('Usuario', UsuarioSchema)
+module.exports = mongoose.model('User', UserSchema)

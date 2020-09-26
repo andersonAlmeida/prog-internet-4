@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 module.exports = (app) => {
   //Configuração do Mongoose
   mongoose
-    .connect('mongodb://localhost/app_produtos', {
+    .connect('mongodb://localhost/chatbot_admin', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false,
