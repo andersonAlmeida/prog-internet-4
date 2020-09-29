@@ -1,4 +1,6 @@
 const User = require('../models/user')
+const agentsController = require('../controllers/agentsController')
+
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
@@ -26,24 +28,43 @@ exports.getOne = (req, res) => {
   })
 }
 
-exports.create = (req, res) => {
-  let { nome, login, senha, role } = req.body
+exports.create = async (req, res) => {
+  let { name, email, password, role } = req.body
 
-  if (!nome || !login || !senha || !role) {
-    res.send({ erro: 'Dados incompletos. Preencha todos os campos.' })
+  if (!name || !email || !password) {
+    res
+      .status(400)
+      .send({ erro: 'Dados incompletos. Preencha todos os campos.' })
   }
 
-  this.encryptPassword(senha).then((hash) => {
+  // pega um agente disponível
+  const agent = await agentsController.getAvailable()
+
+  if (!agent) {
+    res.json({ erro: 'Não possuímos agentes disponíveis no momento' })
+  }
+
+  this.encryptPassword(password).then((hash) => {
     if (!hash) {
       res.status(500).send({ erro: err })
     }
 
-    const newUser = new User({ nome, login, senha: hash, role })
+    const newUser = new User({
+      name,
+      email,
+      password: hash,
+      role,
+      agent: { _id: agent._id, key: agent.key },
+    })
 
-    newUser.save((err, user) => {
+    newUser.save(async (err, user) => {
       if (err) {
         res.send(err)
       }
+
+      // Atualiza o agente selecionado para remover a disponibilidade
+      await agentsController.update(agent._id, { status: 0 })
+
       res.status(201).json(user)
     })
   })

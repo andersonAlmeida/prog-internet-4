@@ -19,11 +19,14 @@ module.exports = (app, express) => {
    * Verifica se está logado e tem a permissão necessária
    * exclui a rota de login
    */
-  app.use(/^(?!.*\/usuarios\/login).*$/, usersController.validateToken)
+  // app.use(
+  //   /^(?!.*\/usuarios\/login|\/produtos).*$/,
+  //   usersController.validateToken
+  // )
 
   /**
    * Rotas com acesso apenas para o Admin
    */
-  app.get('/usuarios', usersController.validateAdminToken)
-  app.post('/usuarios', usersController.validateAdminToken)
+  // app.get('/usuarios', usersController.validateAdminToken)
+  // app.post('/usuarios', usersController.validateAdminToken)
 }
