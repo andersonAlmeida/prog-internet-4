@@ -1,6 +1,6 @@
 const UsersRoutes = require('./users')
 const AgentsRoutes = require('./agents')
-const intentsRoutes = require('./users')
+const intentsRoutes = require('./intents')
 
 module.exports = (app) => {
   app.get('/', (req, res) => {

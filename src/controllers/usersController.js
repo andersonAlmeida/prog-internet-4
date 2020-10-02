@@ -19,13 +19,15 @@ exports.getAll = (req, res) => {
 exports.getOne = (req, res) => {
   const id = req.params.id
 
-  User.findById(id, (err, user) => {
-    if (err) {
-      res.status(500).send({ erro: err })
-    }
+  User.findById(id)
+    .populate('intents')
+    .exec((err, user) => {
+      if (err) {
+        res.status(500).send({ erro: err })
+      }
 
-    res.json(user)
-  })
+      res.json(user)
+    })
 }
 
 exports.create = async (req, res) => {
@@ -36,6 +38,8 @@ exports.create = async (req, res) => {
       .status(400)
       .send({ erro: 'Dados incompletos. Preencha todos os campos.' })
   }
+
+  if (!role) role = 'user'
 
   // pega um agente disponível
   const agent = await agentsController.getAvailable()
@@ -74,9 +78,9 @@ exports.update = async (req, res) => {
   const id = req.params.id
   const userUpdate = req.body
 
-  if (userUpdate.senha) {
-    await this.encryptPassword(userUpdate.senha).then((hash) => {
-      userUpdate.senha = hash
+  if (userUpdate.password) {
+    await this.encryptPassword(userUpdate.password).then((hash) => {
+      userUpdate.password = hash
     })
   }
 
@@ -106,25 +110,25 @@ exports.delete = (req, res) => {
   })
 }
 
-exports.getByLogin = (login) => {
-  return User.findOne({ login })
+exports.getByEmail = (email) => {
+  return User.findOne({ email })
 }
 
 exports.doLogin = (req, res) => {
-  const { login, senha } = req.body
+  const { email, password } = req.body
 
-  if (!login || !senha) {
+  if (!email || !password) {
     res.status(404).send({ erro: 'Login ou senha inválidos.' })
   }
 
-  const loginRes = this.getByLogin(login)
+  const loginRes = this.getByEmail(email)
 
   loginRes.then((user) => {
     if (!user) {
       return res.status(404).send({ erro: 'Usuário não encontrado.' })
     }
 
-    bcrypt.compare(senha, user.senha, (err, result) => {
+    bcrypt.compare(password, user.password, (err, result) => {
       if (err) {
         return res.send({ erro: err })
       }
@@ -140,11 +144,11 @@ exports.doLogin = (req, res) => {
   })
 }
 
-exports.generateJWT = ({ _id, nome, login, role }) => {
+exports.generateJWT = ({ _id, name, email, role }) => {
   const iat = Math.floor(Date.now() / 1000)
   const exp = iat + 60 * 60 // expira em 1h
 
-  return jwt.sign({ _id, nome, login, role, iat, exp }, _SECRET)
+  return jwt.sign({ _id, name, email, role, iat, exp }, _SECRET)
 }
 
 exports.encryptPassword = (pass) => {

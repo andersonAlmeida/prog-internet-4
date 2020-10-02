@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
-const Intent = require('./intent').schema
-const Agent = require('./agent').schema
 const Schema = mongoose.Schema
+const Intent = require('./intent')
+const Agent = require('./agent')
 
 mongoose.Promise = global.Promise
 
@@ -12,8 +12,8 @@ const UserSchema = new Schema(
     password: String,
     role: { type: String, default: 'user' }, // admin, user
     status: { type: Number, default: 1 }, // 1 == ativo, 0 == inativo
-    intents: [Intent],
-    agent: { type: Agent, default: {} },
+    intents: [{ type: Schema.Types.ObjectId, ref: 'Intent' }],
+    agent: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
   },
   { versionKey: false }
 )

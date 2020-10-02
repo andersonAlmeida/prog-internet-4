@@ -9,6 +9,17 @@ exports.getAll = (req, res) => {
   })
 }
 
+exports.getAllByUserId = (req, res) => {
+  const userId = req.params.id
+
+  Intent.find({ user: userId }, (err, intents) => {
+    if (err) {
+      res.status(500).send(err)
+    }
+    res.json(intents)
+  })
+}
+
 exports.getOne = (req, res) => {
   const id = req.params.id
 
@@ -22,8 +33,9 @@ exports.getOne = (req, res) => {
 }
 
 exports.create = (req, res) => {
-  let newProduct = new Intent(req.body)
-  newProduct.save((err, intent) => {
+  let newIntent = new Intent(req.body)
+
+  newIntent.save((err, intent) => {
     if (err) {
       res.send(err)
     }
@@ -33,11 +45,11 @@ exports.create = (req, res) => {
 
 exports.update = (req, res) => {
   const id = req.params.id
-  const productUpdate = req.body
+  const intentUpdate = req.body
 
   Intent.findOneAndUpdate(
     { _id: id },
-    productUpdate,
+    intentUpdate,
     { new: true },
     (err, updated) => {
       if (err) {
