@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ignore": [
+    "**/*.test.js",
+    "**/*.spec.js",
+    ".git",
+    "node_modules",
+    ".gitignore"
+  ],
+  "exec": "npm run lint && node src/app.js"
+}

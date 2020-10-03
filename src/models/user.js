@@ -1,9 +1,9 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
-const Intent = require('./intent')
-const Agent = require('./agent')
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const Intent = require('./intent');
+const Agent = require('./agent');
 
-mongoose.Promise = global.Promise
+mongoose.Promise = global.Promise;
 
 const UserSchema = new Schema(
   {
@@ -16,6 +16,6 @@ const UserSchema = new Schema(
     agent: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
   },
   { versionKey: false }
-)
+);
 
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.model('User', UserSchema);

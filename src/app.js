@@ -1,19 +1,19 @@
-require('dotenv').config()
-const express = require('express')
+require('dotenv').config();
+const express = require('express');
 
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
-const DB = require('./config/db')
-const Routes = require('./routes/routes')
-const Middlewares = require('./middleware/middlewares')
+const DB = require('./config/db');
+const Routes = require('./routes/routes');
+const Middlewares = require('./middleware/middlewares');
 
-DB()
-Middlewares(app, express)
-Routes(app)
+DB();
+Middlewares(app, express);
+Routes(app);
 
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`)
-})
+  console.log(`Server listening at http://localhost:${port}`);
+});
 
-module.exports = { app }
+module.exports = { app };
