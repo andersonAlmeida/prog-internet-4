@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon ./src/app.js",
+    "doc": "apidoc -i ./src/controllers/ -o ./documentation/",
     "test": "mocha ./tests --exit"
   },
   "dependencies": {

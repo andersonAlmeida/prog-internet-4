@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     password: String,
     role: { type: String, default: 'user' }, // admin, user
     status: { type: Number, default: 1 }, // 1 == ativo, 0 == inativo
-    intents: [{ type: Schema.Types.ObjectId, ref: 'Intent' }],
+    // intents: [{ type: Schema.Types.ObjectId, ref: 'Intent' }],
     agent: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent' },
   },
   { versionKey: false }

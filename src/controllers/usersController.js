@@ -7,6 +7,22 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const _SECRET = process.env.JWT_SECRET
 
+/**
+ *
+ * @api {get} /usuarios Lista usuários
+ * @apiName getAll
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ * @apiSuccess (200) {String} role Permissão do usuário. Valores: admin ou user
+ * @apiSuccess (200) {Number} status Status do cadastro do usuário. Valores: 1 - ativo, 0 - inativo
+ * @apiSuccess (200) {String} _id Id do usuário
+ * @apiSuccess (200) {String} name Nome
+ * @apiSuccess (200) {String} email E-mail
+ * @apiSuccess (200) {String} password Senha
+ * @apiSuccess (200) {String} agent Código do agente do dialogflow para o usuário
+ *
+ */
 exports.getAll = (req, res) => {
   User.find({}, (err, users) => {
     if (err) {
@@ -16,11 +32,30 @@ exports.getAll = (req, res) => {
   })
 }
 
+/**
+ *
+ * @api {get} /usuarios/:id Lista detalhes do usuário
+ * @apiName getOne
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ *
+ * @apiParam  {String} id Id do usuário
+ *
+ * @apiSuccess (200) {String} role Permissão do usuário. Valores: admin ou user
+ * @apiSuccess (200) {Number} status Status do cadastro do usuário. Valores: 1 - ativo, 0 - inativo
+ * @apiSuccess (200) {String} _id Id do usuário
+ * @apiSuccess (200) {String} name Nome
+ * @apiSuccess (200) {String} email E-mail
+ * @apiSuccess (200) {String} password Senha
+ * @apiSuccess (200) {Object} agent Objeto com os dados do agente do dialogflow para o usuário
+ *
+ */
 exports.getOne = (req, res) => {
   const id = req.params.id
 
   User.findById(id)
-    .populate('intents')
+    .populate('agent')
     .exec((err, user) => {
       if (err) {
         res.status(500).send({ erro: err })
@@ -30,6 +65,36 @@ exports.getOne = (req, res) => {
     })
 }
 
+/**
+ *
+ * @api {post} /usuarios Criar usuário
+ * @apiName create
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ *
+ * @apiParam  {String} name Nome do usuário
+ * @apiParam  {String} email E-mail do usuário
+ * @apiParam  {String} password Senha
+ * @apiParam  {String} [role] Permissão do usuário
+ *
+ * @apiSuccess (200) {String} role Permissão do usuário. Valores: admin ou user
+ * @apiSuccess (200) {Number} status Status do cadastro do usuário. Valores: 1 - ativo, 0 - inativo
+ * @apiSuccess (200) {String} _id Id do usuário
+ * @apiSuccess (200) {String} name Nome
+ * @apiSuccess (200) {String} email E-mail
+ * @apiSuccess (200) {String} password Senha
+ * @apiSuccess (200) {String} agent Código do agente do dialogflow para o usuário
+ *
+ * @apiParamExample  {type} Request-Example:
+ * {
+ *    "name": "user",
+ *    "email": "user@gmail.com",
+ *    "password": "123456",
+ *    "role": "admin"
+ * }
+ *
+ */
 exports.create = async (req, res) => {
   let { name, email, password, role } = req.body
 
@@ -144,11 +209,11 @@ exports.doLogin = (req, res) => {
   })
 }
 
-exports.generateJWT = ({ _id, name, email, role }) => {
+exports.generateJWT = ({ _id, name, email, role, agent }) => {
   const iat = Math.floor(Date.now() / 1000)
   const exp = iat + 60 * 60 // expira em 1h
 
-  return jwt.sign({ _id, name, email, role, iat, exp }, _SECRET)
+  return jwt.sign({ _id, name, email, role, agent, iat, exp }, _SECRET)
 }
 
 exports.encryptPassword = (pass) => {
@@ -176,7 +241,7 @@ exports.validateAdminToken = (req, res, next) => {
 
   jwt.verify(token, _SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ erro: err })
+      return res.status(401).send({ erro: 'Acesso não autorizado' })
     } else if (decoded.role !== 'admin') {
       return res.status(401).send({ erro: 'Acesso não autorizado' })
     } else {
