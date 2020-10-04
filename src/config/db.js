@@ -1,7 +1,7 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-module.exports = (app) => {
-  //Configuração do Mongoose
+module.exports = () => {
+  // Configuração do Mongoose
   mongoose
     .connect('mongodb://localhost/chatbot_admin', {
       useNewUrlParser: true,
@@ -9,10 +9,12 @@ module.exports = (app) => {
       useFindAndModify: false,
     })
     .then(() => {
-      console.log('BD conectado')
+      // eslint-disable-next-line
+      console.log('BD conectado');
     })
     .catch((error) => {
-      console.log('Error ao conectar ao BD')
-    })
-  mongoose.Promise = global.Promise
-}
+      // eslint-disable-next-line
+      console.log(`Error ao conectar ao BD. Erro ${error}`);
+    });
+  mongoose.Promise = global.Promise;
+};

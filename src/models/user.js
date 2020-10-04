@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+
+const { Schema } = mongoose;
 const Agent = require('./agent').schema;
 
 mongoose.Promise = global.Promise;

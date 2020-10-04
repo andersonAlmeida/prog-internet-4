@@ -1,8 +1,7 @@
-const User = require('../models/user');
-const agentsController = require('../controllers/agentsController');
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const User = require('../models/user');
+const agentsController = require('./agentsController');
 
 const saltRounds = 10;
 const _SECRET = process.env.JWT_SECRET;
@@ -52,17 +51,15 @@ exports.getAll = (req, res) => {
  *
  */
 exports.getOne = (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
-  User.findById(id)
-    .populate('agent')
-    .exec((err, user) => {
-      if (err) {
-        res.status(500).send({ erro: err });
-      }
+  User.findById(id).exec((err, user) => {
+    if (err) {
+      res.status(500).send({ erro: err });
+    }
 
-      res.json(user);
-    });
+    res.json(user);
+  });
 };
 
 /**
@@ -96,7 +93,8 @@ exports.getOne = (req, res) => {
  *
  */
 exports.create = async (req, res) => {
-  let { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
+  let { role } = req.body;
 
   if (!name || !email || !password) {
     res
@@ -118,7 +116,7 @@ exports.create = async (req, res) => {
 
   this.encryptPassword(password).then((hash) => {
     if (!hash) {
-      res.status(500).send({ erro: err });
+      res.status(401).send({ erro: 'Senha inválida' });
     }
 
     /**
@@ -173,7 +171,7 @@ exports.create = async (req, res) => {
  *
  */
 exports.update = async (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   const userUpdate = req.body;
 
   if (userUpdate.password) {
@@ -197,7 +195,7 @@ exports.update = async (req, res) => {
 };
 
 exports.delete = (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
   User.findByIdAndDelete({ _id: id }, (err, deleted) => {
     if (err) {
@@ -212,34 +210,73 @@ exports.getByEmail = (email) => {
   return User.findOne({ email });
 };
 
+/**
+ *
+ * @api {post} /usuarios/login Efetua login
+ * @apiName doLogin
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ *
+ * @apiParam  {String} email E-mail do usuário
+ * @apiParam  {String} password Senha do usuário
+ *
+ * @apiSuccess (200) {Object} user dados do usuário
+ * @apiSuccess (200) {String} token jwt token
+ *
+ * @apiParamExample  {Object} Request-Example:
+ * {
+ *     email : value
+ *     password : value
+ * }
+ *
+ *
+ * @apiSuccessExample {type} Success-Response:
+ * {
+ *     user : {...}
+ *     token : "..."
+ * }
+ *
+ *
+ */
 exports.doLogin = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     res.status(404).send({ erro: 'Login ou senha inválidos.' });
+    return false;
   }
 
   const loginRes = this.getByEmail(email);
 
   loginRes.then((user) => {
     if (!user) {
-      return res.status(404).send({ erro: 'Usuário não encontrado.' });
+      res.status(404).send({ erro: 'Usuário não encontrado.' });
     }
 
     bcrypt.compare(password, user.password, (err, result) => {
       if (err) {
-        return res.send({ erro: err });
+        res.send({ erro: err });
+        return false;
       }
 
       if (result) {
         const token = this.generateJWT(user);
+        const { role, status, agent, _id, name, email: loggedEmail } = user;
 
-        return res.json({ user, token });
+        res.json({
+          user: { role, status, agent, _id, name, email: loggedEmail },
+          token,
+        });
+        return false;
       }
 
-      return res.status(404).send({ erro: 'Senha inválida.' });
+      res.status(404).send({ erro: 'Senha inválida.' });
+      return false;
     });
   });
+
+  return false;
 };
 
 exports.generateJWT = ({ _id, name, email, role, agent }) => {
@@ -257,12 +294,12 @@ exports.validateToken = (req, res, next) => {
   const token = req.get('Authorization');
 
   if (!token) {
-    return res.status(401).send({ erro: 'Acesso não autorizado.' });
+    res.status(401).send({ erro: 'Acesso não autorizado.' });
   }
 
-  jwt.verify(token, _SECRET, (err, decoded) => {
+  jwt.verify(token, _SECRET, (err) => {
     if (err) {
-      return res.status(401).send({ erro: err });
+      res.status(401).send({ erro: err });
     } else {
       next();
     }
@@ -274,9 +311,9 @@ exports.validateAdminToken = (req, res, next) => {
 
   jwt.verify(token, _SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ erro: 'Acesso não autorizado' });
+      res.status(401).send({ erro: 'Acesso não autorizado' });
     } else if (decoded.role !== 'admin') {
-      return res.status(401).send({ erro: 'Acesso não autorizado' });
+      res.status(401).send({ erro: 'Acesso não autorizado' });
     } else {
       next();
     }

@@ -13,6 +13,7 @@ Middlewares(app, express);
 Routes(app);
 
 app.listen(port, () => {
+  // eslint-disable-next-line
   console.log(`Server listening at http://localhost:${port}`);
 });
 

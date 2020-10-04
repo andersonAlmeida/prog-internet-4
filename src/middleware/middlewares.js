@@ -1,6 +1,4 @@
 const bodyParser = require('body-parser');
-// const jwt = require('jsonwebtoken')
-// const _SECRET = process.env.JWT_SECRET
 const usersController = require('../controllers/usersController');
 
 module.exports = (app, express) => {
@@ -9,9 +7,11 @@ module.exports = (app, express) => {
   app.use('/api/docs', express.static('documentation'));
 
   app.use((req, res, next) => {
+    /* eslint-disable no-console */
     console.log('Tipo: ', req.method);
     console.log('Rota: ', req.url);
     console.log('Horário: ', new Date(Date.now()));
+    /* eslint-enable no-console */
 
     next();
   });
