@@ -106,11 +106,14 @@ exports.create = async (req, res) => {
 
   if (!role) role = 'user';
 
-  // pega um agente disponível
-  const agent = await agentsController.getAvailable();
+  // pega um agente disponível é um usuário do tipo `user`
+  let agent = null;
+  if (role === 'user') {
+    agent = await agentsController.getAvailable();
 
-  if (!agent) {
-    res.json({ erro: 'Não possuímos agentes disponíveis no momento' });
+    if (!agent) {
+      res.json({ erro: 'Não possuímos agentes disponíveis no momento' });
+    }
   }
 
   this.encryptPassword(password).then((hash) => {
@@ -118,12 +121,15 @@ exports.create = async (req, res) => {
       res.status(500).send({ erro: err });
     }
 
+    /**
+     * Instancia um novo usuário
+     */
     const newUser = new User({
       name,
       email,
       password: hash,
       role,
-      agent: { _id: agent._id, key: agent.key },
+      agent: role === 'user' ? { _id: agent._id, key: agent.key } : null,
     });
 
     newUser.save(async (err, user) => {
@@ -131,14 +137,41 @@ exports.create = async (req, res) => {
         res.send(err);
       }
 
-      // Atualiza o agente selecionado para remover a disponibilidade
-      await agentsController.update(agent._id, { status: 0 });
+      if (role === 'user') {
+        // Atualiza o agente selecionado para remover a disponibilidade
+        await agentsController.update(agent._id, { status: 0 });
+      }
 
       res.status(201).json(user);
     });
   });
 };
 
+/**
+ *
+ * @api {put} /usuarios/:id Atualizar usuário
+ * @apiName update
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ *
+ * @apiParam  {String} id Id usuário
+ *
+ * @apiSuccess (200) {type} name description
+ *
+ * @apiParamExample  {type} Request-Example:
+ * {
+ *     property : value
+ * }
+ *
+ *
+ * @apiSuccessExample {type} Success-Response:
+ * {
+ *     property : value
+ * }
+ *
+ *
+ */
 exports.update = async (req, res) => {
   const id = req.params.id;
   const userUpdate = req.body;
