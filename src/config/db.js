@@ -4,8 +4,6 @@ module.exports = () => {
   // Configuração do Mongoose
   mongoose
     .connect(process.env.DB_DRIVER, {
-      user: process.env.DB_USER,
-      pass: process.env.DB_PASSWORD,
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false,
