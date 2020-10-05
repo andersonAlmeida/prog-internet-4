@@ -4,7 +4,7 @@
   "main": "app.js",
   "license": "MIT",
   "scripts": {
-    "start": "node ./app.js",
+    "start": "node ./src/app.js",
     "dev": "nodemon",
     "doc": "apidoc -i ./src/controllers/ -o ./documentation/",
     "test": "mocha ./tests --exit",
