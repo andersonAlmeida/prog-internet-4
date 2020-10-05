@@ -4,7 +4,8 @@
   "main": "app.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon",
+    "start": "node ./app.js",
+    "dev": "nodemon",
     "doc": "apidoc -i ./src/controllers/ -o ./documentation/",
     "test": "mocha ./tests --exit",
     "lint": "eslint ./src --ignore-pattern node_modules/",
