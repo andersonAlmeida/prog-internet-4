@@ -7,6 +7,8 @@ module.exports = (app) => {
 
   app.post('/usuarios', usersController.create);
 
+  app.post('/usuarios/cadastro', usersController.createUser);
+
   app.put('/usuarios/:id', usersController.update);
 
   app.delete('/usuarios/:id', usersController.delete);

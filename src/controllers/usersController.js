@@ -116,7 +116,8 @@ exports.create = async (req, res) => {
 
   this.encryptPassword(password).then((hash) => {
     if (!hash) {
-      res.status(401).send({ erro: 'Senha inválida' });
+      res.status(500).send({ erro: 'Erro ao tentar criptografar a senha.' });
+      return false;
     }
 
     /**
@@ -142,7 +143,90 @@ exports.create = async (req, res) => {
 
       res.status(201).json(user);
     });
+    return true;
   });
+};
+
+/**
+ *
+ * @api {post} /usuarios/cadastro Cadastrar um usuário
+ * @apiName createUser
+ * @apiGroup Usuários
+ * @apiVersion  1.0.0
+ *
+ *
+ * @apiParam  {String} name Nome do usuário
+ * @apiParam  {String} email E-mail do usuário
+ * @apiParam  {String} password Senha
+ *
+ * @apiSuccess (200) {String} role Permissão do usuário.
+ * @apiSuccess (200) {Number} status Status do cadastro do usuário. Valores: 1 - ativo, 0 - inativo
+ * @apiSuccess (200) {String} _id Id do usuário
+ * @apiSuccess (200) {String} name Nome
+ * @apiSuccess (200) {String} email E-mail
+ * @apiSuccess (200) {String} password Senha
+ * @apiSuccess (200) {String} agent Código do agente do dialogflow para o usuário
+ *
+ * @apiParamExample  {type} Request-Example:
+ * {
+ *    "name": "user",
+ *    "email": "user@gmail.com",
+ *    "password": "123456",
+ *    "role": "admin"
+ * }
+ *
+ */
+exports.createUser = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    res
+      .status(400)
+      .send({ erro: 'Dados incompletos. Preencha todos os campos.' });
+  }
+
+  // pega um agente disponível
+  const agent = await agentsController.getAvailable();
+
+  if (!agent) {
+    res.json({ erro: 'Não possuímos agentes disponíveis no momento' });
+    return false;
+  }
+
+  this.encryptPassword(password).then((hash) => {
+    if (!hash) {
+      res
+        .status(500)
+        .send({ erro: 'Problema ao tentar criptografar a senha.' });
+      return false;
+    }
+
+    /**
+     * Instancia um novo usuário
+     */
+    const newUser = new User({
+      name,
+      email,
+      password: hash,
+      role: 'user',
+      agent: { _id: agent._id, key: agent.key },
+    });
+
+    newUser.save(async (err, user) => {
+      if (err) {
+        res.send(err);
+      }
+
+      // Atualiza o agente selecionado para remover a disponibilidade
+      await agentsController.update(agent._id, { status: 0 });
+
+      res.status(201).json(user);
+    });
+
+    return true;
+  });
+
+  return true;
 };
 
 /**
