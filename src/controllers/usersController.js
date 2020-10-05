@@ -379,6 +379,7 @@ exports.validateToken = (req, res, next) => {
 
   if (!token) {
     res.status(401).send({ erro: 'Acesso não autorizado.' });
+    return false;
   }
 
   jwt.verify(token, _SECRET, (err) => {
@@ -388,6 +389,8 @@ exports.validateToken = (req, res, next) => {
       next();
     }
   });
+
+  return true;
 };
 
 exports.validateAdminToken = (req, res, next) => {
